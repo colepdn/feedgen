@@ -1,0 +1,14 @@
+{
+  "name": "feedgen",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/express": "^5.0.0",
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "typescript": "^5.7.3"
+  }
+}
