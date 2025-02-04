@@ -1,0 +1,5 @@
+TODO implement .well-known
+TODO implement error handling
+	the format is {"error":"UnsupportedAlgorithm","message":"Unsupported algorithm"}
+TODO implement multiple feeds handling. we return the same feed for every endpoint
+TODO implement the cron script
