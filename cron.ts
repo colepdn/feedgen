@@ -16,6 +16,15 @@ const { data } = await rpc.get('app.bsky.feed.getLikes', {
 	},
 });
 
+type Post = {
+  uri: string
+  cid: string
+  indexedAt: string
+  author: string // did
+  media: boolean
+}
+
+
 for ( const item of data.likes ) {
 	console.log(`${item.actor.handle}: ${item.actor.did}`)
 	let follows = []
@@ -48,9 +57,8 @@ for ( const item of data.likes ) {
 			if (post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost') {
 				console.log('skipping... repost')
 			}
-			console.log(post.post)
+			console.log(post.post.record.text)
 		}
-		break;
 	}
 	
 }
