@@ -40,7 +40,7 @@ for ( const item of data.likes ) {
 	}
 	console.log('done! len:', follows.length)
 
-	for (const follow of follows) {
+	for (const follow of follows){
 		console.log(follow.did)
 		const { data: authorFeed } = await rpc.get('app.bsky.feed.getAuthorFeed', {
 			params: {
@@ -52,10 +52,14 @@ for ( const item of data.likes ) {
 		for (const post of authorFeed.feed) {
 			const pp = post.post
 			//console.log('p', post.post.record.text, 'r', post.reason)
-			if (post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost') {
-				//console.log('skipping... repost')
+			const a = post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost'
+			const b = pp.author.did !== follow.did 
+			if (post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost' || pp.author.did !== follow.did) {
+				if (!a && b) console.log('skipping reasonless did mismatch')
+				continue;
 			} else if (post.reason) console.log('post has reason, not repost:', post.post.reason);
-			let media = pp.embed?.["$type"] === "app.bsky.embed.video" || pp.embed?.["$type"] === "app.bsky.embed.images" 
+
+			let media = pp.embed?.["$type"].includes("app.bsky.embed.video") || pp.embed?.["$type"].includes("app.bsky.embed.images")
 			if (uris.includes(pp.uri)) {
 				const index = uris.indexOf(pp.uri)
 				const newArr = JSON.parse(newPosts[index].usersFor) ?? []
@@ -83,7 +87,7 @@ for ( const item of data.likes ) {
 
 for (let i = 0; i < uris.length; i++) {
 	const uri = uris[i]
-	if (uri !== newPosts[i].uri) console.log('mismatch')
+	if (uri !== newPosts[i].uri) console.log('mismatch!', uri, "!=", newPosts[i].uri)
 }
 
 console.log('adding', newPosts.length, 'items')

@@ -1,10 +1,3 @@
-TODO implement .well-known
-	it is currently hard-coded
-	maybe just read from .env lol
-TODO implement error handling
-	the format is {"error":"UnsupportedAlgorithm","message":"Unsupported algorithm"}
-TODO implement multiple feeds handling. we return the same feed for every endpoint
-TODO implement the cron script
 DONE fucking databases. 
 	use kysely, that's what they use in the bsky feedgen
 	https://www.kysely.dev/	
@@ -14,13 +7,33 @@ DONE fucking databases.
 	then we can get all posts from the author after a certain timestamp and then just count the list to get their frequency.
 	and for the media feed we can just return posts that have media!
 	we should probably also include an item for if the media has been marked nsfw
-
-TODO fix the bug where reposts from a user's feed will show up in the feed.
+DONE fix the bug where reposts from a user's feed will show up in the feed.
 	noticed this happening when aviva.gay had reposted something and it showed up (uncredited lmao)
 	when iterating an author feed we can check if the post author has the same did
+	i just wasn't actually skipping it, i was executing the check
+DONE implement the cron script
+DONE implement multiple feeds handling. we return the same feed for every endpoint
+
+TODO implement .well-known
+	it is currently hard-coded
+	maybe just read from .env lol
+TODO implement error handling
+	the format is {"error":"UnsupportedAlgorithm","message":"Unsupported algorithm"}
 TODO cleanup posts
 	TODO just delete old posts
 	TODO delete old posts, but keep at least n posts from a user's feed.
-		use the UsersFor column to get this feed
+		use the usersFor column to get this feed
 		TODO add function to calculate a feed to get the nth item's uri
-		 
+			TODO implement common code for feedgen.
+				for every feed we need to get the user's did from the jwt and convert the PostsTable posts to at-uris.
+				let's just make this common code that is executed for EVERY feed.
+			TODO change format of returned algos from { feed: string[] cursor: string } of uris to the returned db response. 
+				here, we can re-use this in places that aren't just feedgen.
+			TODO use new function to calculate 200 posts, then delete posts older than post 201. 
+				calc for all feeds and then delete oldest post out of EVERY feed. this requires feed files to be standardized. (duh)
+			TODO how do we deal with posts that have been collected for multiple users?
+
+TODO see if it's feasible to generate feeds on-demand.
+	TODO cache following? that's probably not fast enough
+	TODO fetch posts from users who've posted today. cron script when we constrain to only 10 users is almost instantaneous.
+	TODO simultaneous author feed fetching. change for loop from executing instantly to generating promises, and then await Promise.all()'ing them.

@@ -26,15 +26,16 @@ app.get('/.well-known/did.json', async (_req, res) => {
 })
 
 app.get('/xrpc/app.bsky.feed.getFeedSkeleton', async (req, res) => {
-	console.log('req', req)
+	//console.log('req', req)
 	console.log('query', req.query)
 	const params = req.query
 	const token = req.headers.authorization
 	console.log('token', token)
 	if (token && token.includes("Bearer")) {
 		// app.bsky.feed.getFeedSkeleton?feed=at://did:plc:wl4wyug27klcee5peb3xkeut/app.bsky.feed.generator/feed&limit=30&cursor=1738809921823
-		console.log(decodeURIComponent(req.url.split('/').at(-1) ?? "").split('/'))
-		const resp = await algos.feed(db, params, token)
+		const feed = decodeURIComponent(req.url.split('/').at(-1) ?? "").split('/').at(-1).split('&')[0]
+		console.log('feed', feed)
+		const resp = await algos[feed](db, params, token)
 		res.status(200)
 		res.json(resp)
 		return
