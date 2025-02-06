@@ -1,6 +1,6 @@
 import { XRPC, CredentialManager } from '@atcute/client'
-import Database from 'better-sqlite3'
-const db = new Database()
+import { initDb } from './db.ts'
+import type { PostTable } from './db.ts'
 import 'dotenv/config'
 
 const manager = new CredentialManager({ service: process.env.BSKY_SERVICE })
@@ -16,18 +16,15 @@ const { data } = await rpc.get('app.bsky.feed.getLikes', {
 	},
 });
 
-type Post = {
-  uri: string
-  cid: string
-  indexedAt: string
-  author: string // did
-  media: boolean
-}
+const db = await initDb()
 
+let newPosts: PostTable[] = []
+const uris: string[] = []
+const indices: number[] = []
 
 for ( const item of data.likes ) {
 	console.log(`${item.actor.handle}: ${item.actor.did}`)
-	let follows = []
+	let follows: any[] = []
 	let cursor = null
 	while (cursor !== undefined) {
 		const { data: d } = await rpc.get("app.bsky.graph.getFollows", {
@@ -43,7 +40,7 @@ for ( const item of data.likes ) {
 	}
 	console.log('done! len:', follows.length)
 
-	for (const follow of follows.slice(0, 10)) {
+	for (const follow of follows) {
 		console.log(follow.did)
 		const { data: authorFeed } = await rpc.get('app.bsky.feed.getAuthorFeed', {
 			params: {
@@ -51,25 +48,55 @@ for ( const item of data.likes ) {
 				filter: "posts_no_replies"
 			}
 		})
-		console.log(authorFeed)
+		//console.log(authorFeed)
 		for (const post of authorFeed.feed) {
+			const pp = post.post
 			//console.log('p', post.post.record.text, 'r', post.reason)
 			if (post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost') {
-				console.log('skipping... repost')
+				//console.log('skipping... repost')
+			} else if (post.reason) console.log('post has reason, not repost:', post.post.reason);
+			let media = pp.embed?.["$type"] === "app.bsky.embed.video" || pp.embed?.["$type"] === "app.bsky.embed.images" 
+			if (uris.includes(pp.uri)) {
+				const index = uris.indexOf(pp.uri)
+				const newArr = JSON.parse(newPosts[index].usersFor) ?? []
+				console.log(newArr)
+				if (!newArr.includes(item.actor.did)) {
+					newArr.push(item.actor.did)
+					newPosts[index].usersFor = JSON.stringify(newArr)
+				}
+			} else {
+				const postnis = {
+					uri: pp.uri,
+					cid: pp.cid,
+					indexedAt: pp.indexedAt,
+					author: pp.author.did,
+					media: media ? 1 : 0,
+					usersFor: JSON.stringify([item.actor.did])
+				}
+				newPosts.push(postnis)
+				uris.push(pp.uri)
 			}
-			console.log(post.post.record.text)
 		}
 	}
-	
+
 }
 
+for (let i = 0; i < uris.length; i++) {
+	const uri = uris[i]
+	if (uri !== newPosts[i].uri) console.log('mismatch')
+}
 
-/*
-const { data: myFeed } = await rpc.get('app.bsky.feed.getAuthorFeed', {
-	params: {
-		actor: "did:plc:wl4wyug27klcee5peb3xkeut"
-	}
-})
+console.log('adding', newPosts.length, 'items')
 
-console.log(myFeed) 
-*/
+while(newPosts.length) {
+	const result = await db
+		.insertInto('posts')
+		.values(newPosts.slice(0,999))
+		.onConflict(oc => oc.column('uri').doNothing())
+		.execute()
+	
+	newPosts = newPosts.slice(999)
+	console.log('result', result)
+}
+
+console.log('done!')

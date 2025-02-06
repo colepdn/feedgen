@@ -1,10 +1,11 @@
 TODO implement .well-known
 	it is currently hard-coded
+	maybe just read from .env lol
 TODO implement error handling
 	the format is {"error":"UnsupportedAlgorithm","message":"Unsupported algorithm"}
 TODO implement multiple feeds handling. we return the same feed for every endpoint
 TODO implement the cron script
-TODO fucking databases. 
+DONE fucking databases. 
 	use kysely, that's what they use in the bsky feedgen
 	https://www.kysely.dev/	
 	in feed-generator see db/index.ts and db/schema.ts
@@ -13,3 +14,13 @@ TODO fucking databases.
 	then we can get all posts from the author after a certain timestamp and then just count the list to get their frequency.
 	and for the media feed we can just return posts that have media!
 	we should probably also include an item for if the media has been marked nsfw
+
+TODO fix the bug where reposts from a user's feed will show up in the feed.
+	noticed this happening when aviva.gay had reposted something and it showed up (uncredited lmao)
+	when iterating an author feed we can check if the post author has the same did
+TODO cleanup posts
+	TODO just delete old posts
+	TODO delete old posts, but keep at least n posts from a user's feed.
+		use the UsersFor column to get this feed
+		TODO add function to calculate a feed to get the nth item's uri
+		 
