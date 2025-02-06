@@ -1,6 +1,7 @@
 import express from 'express'
 import { jwt } from './utils.ts'
 import { initDb } from './db.ts'
+import algos from "./algos/index.ts" // we have barrel files... but we don't have any of the problems! awesome!
 const app = express()
 const port = 3000
 
@@ -31,38 +32,11 @@ app.get('/xrpc/app.bsky.feed.getFeedSkeleton', async (req, res) => {
 	const token = req.headers.authorization
 	console.log('token', token)
 	if (token && token.includes("Bearer")) {
-		let limit = parseInt((params.limit as string | undefined) ?? "50")
-		limit = isNaN(limit) ? 50 : limit
-		console.log('decoded', jwt(token))
-		let builder = db
-			.selectFrom('posts')
-			.selectAll()
-			.orderBy('indexedAt', 'desc')
-			.orderBy('cid', 'desc')
-			.limit(limit)
-
-		if (params.cursor) {
-			const timeStr = new Date(parseInt(params.cursor as string, 10)).toISOString()
-			builder = builder.where('posts.indexedAt', '<', timeStr)
-		}
-
-		const posts = await builder.execute()
-
-		const feed = posts.map((row) => ({
-			post: row.uri
-		}))
-
-		let cursor: string | undefined
-		const last = posts.at(-1)
-		if (last) {
-			cursor = new Date(last.indexedAt).getTime().toString(10)
-		}
-
+		// app.bsky.feed.getFeedSkeleton?feed=at://did:plc:wl4wyug27klcee5peb3xkeut/app.bsky.feed.generator/feed&limit=30&cursor=1738809921823
+		console.log(decodeURIComponent(req.url.split('/').at(-1) ?? "").split('/'))
+		const resp = await algos.feed(db, params, token)
 		res.status(200)
-		res.json({
-			feed,
-			cursor
-		})
+		res.json(resp)
 		return
 	}
 
