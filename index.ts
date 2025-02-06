@@ -31,13 +31,34 @@ app.get('/xrpc/app.bsky.feed.getFeedSkeleton', async (req, res) => {
 	const params = req.query
 	const token = req.headers.authorization
 	console.log('token', token)
+	// app.bsky.feed.getFeedSkeleton?feed=at://did:plc:wl4wyug27klcee5peb3xkeut/app.bsky.feed.generator/feed&limit=30&cursor=1738809921823
+
 	if (token && token.includes("Bearer")) {
-		// app.bsky.feed.getFeedSkeleton?feed=at://did:plc:wl4wyug27klcee5peb3xkeut/app.bsky.feed.generator/feed&limit=30&cursor=1738809921823
 		const feed = decodeURIComponent(req.url.split('/').at(-1) ?? "").split('/').at(-1).split('&')[0]
 		console.log('feed', feed)
-		const resp = await algos[feed](db, params, token)
+		let limit = parseInt((params.limit as string | undefined) ?? "50")
+		limit = isNaN(limit) ? 50 : limit
+		const auth = jwt(token)
+		console.log('decoded', auth)
+		
+		const posts = await algos[feed](db, auth, params, limit)
+		console.log(posts.slice(0, 10))
+
+		const resp = posts.map((row) => ({
+			post: row.uri
+		}))
+
+		let cursor: string | undefined
+		const last = posts.at(-1)
+		if (last) {
+			cursor = new Date(last.indexedAt).getTime().toString(10)
+		}
+
 		res.status(200)
-		res.json(resp)
+		res.json({
+			feed: resp,
+			cursor
+		})
 		return
 	}
 
