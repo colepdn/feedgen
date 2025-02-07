@@ -4,8 +4,7 @@ export const name = "feed"
 
 export default { name, handler }
 
-export async function handler(db: Tdb, auth, params, limit) {
-	const did = auth[1].iss
+export async function handler(db: Tdb, userDid, params, limit) {
 	let builder = db
 		.selectFrom('posts')
 		.selectAll()

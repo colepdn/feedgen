@@ -41,7 +41,7 @@ app.get('/xrpc/app.bsky.feed.getFeedSkeleton', async (req, res) => {
 		const auth = jwt(token)
 		console.log('decoded', auth)
 		
-		const posts = await algos[feed](db, auth, params, limit)
+		const posts = await algos[feed](db, auth[1].iss, params, limit)
 		console.log(posts.slice(0, 10))
 
 		const resp = posts.map((row) => ({

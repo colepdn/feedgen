@@ -7,14 +7,13 @@ export default { name, handler}
 
 type Tdb = Awaited<ReturnType<typeof initDb>>;
 
-export async function handler(db: Tdb, auth, params, limit) {
-	const did = auth[1].iss
+export async function handler(db: Tdb, userDid, params, limit) {
 	let builder = db
 		.selectFrom('posts')
 		.selectAll()
 		.orderBy('indexedAt', 'desc')
 		.orderBy('cid', 'desc')
-		.where('posts.usersFor', 'like', `%${did}%`)
+		.where('posts.usersFor', 'like', `%${userDid}%`)
 		.where('posts.media', '=', '1')
 		.limit(limit)
 
