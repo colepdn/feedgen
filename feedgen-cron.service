@@ -1,0 +1,9 @@
+[Unit]
+Description=Bluesky Feedgen Cron
+
+[Service]
+Type=oneshot
+User=feedgen	
+WorkingDirectory=/var/lib/feedgen/
+ExecStart=/usr/bin/node cron.ts
+Restart=on-failure

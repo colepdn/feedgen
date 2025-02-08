@@ -3,7 +3,7 @@ import { jwt } from './utils.ts'
 import { initDb } from './db.ts'
 import algos from "./algos/index.ts" // we have barrel files... but we don't have any of the problems! awesome!
 const app = express()
-const port = 3000
+const port = 3080
 
 const db = await initDb()
 

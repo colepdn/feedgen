@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Feedgen Cron Every 30m
+
+[Timer]
+OnCalendar=*:0/30
+Unit=feedgen-cron.service
+Persistent=false
+
+[Install]
+WantedBy=timers.target
