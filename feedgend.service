@@ -1,0 +1,16 @@
+[Unit]
+Description=Bluesky Feedgen
+After=network.target
+
+[Service]
+Type=exec
+# yeah i know. we're using node. i already have a bun user.
+User=bun	
+# fixme
+WorkingDirectory=
+ExecStart=/usr/bin/node index.ts
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

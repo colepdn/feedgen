@@ -37,3 +37,19 @@ TODO see if it's feasible to generate feeds on-demand.
 	TODO cache following? that's probably not fast enough
 	TODO fetch posts from users who've posted today. cron script when we constrain to only 10 users is almost instantaneous.
 	TODO simultaneous author feed fetching. change for loop from executing instantly to generating promises, and then await Promise.all()'ing them.
+
+TODO make topten feed calculation more accurate
+	currently we have some real issues.
+	i refuse to believe Hideo Kojima is my #1 poaster.
+	this is probably because we don't have ALL the posts the user has made in the past week.
+	I think there's a hard limit - since we only fetch one author feed.
+	so things just get jumbled up.
+	how does this intersect with garbage-collection?
+	for this feed to work, do we really need to fetch the author feed for the entire week?
+		currently the db is small (2.6MB at 1st cron.ts run) - we don't really need to introduce cost-cutting measures
+		though if we do, our previous garbage-collection methodology goes out the window. we need a lot more posts to calculate this feed than the media feed.
+		maybe i can change from 'posts this week' to 'posts this day'
+
+TODO Write the fucking unit files!	
+	
+	

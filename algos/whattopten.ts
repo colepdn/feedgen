@@ -1,5 +1,5 @@
 import { initDb } from "../db.ts"
-export const name = "topten"
+export const name = "whattopten"
 
 export default { name, handler }
 
@@ -40,19 +40,23 @@ export async function handler(db: Tdb, userDid: string, params, limit: number) {
 	const scoundrels = vals.slice(0, top10).map(e => e[0])
 	console.log('excluding', scoundrels)
 
-	let builder = db 
-		.selectFrom('posts')
-		.selectAll()
-		.orderBy('indexedAt', 'desc')
-		.orderBy('cid', 'desc')
-		.where('posts.author', 'not in', scoundrels)
-		.limit(limit)
 
-	if (params.cursor) {
-		const timeStr = new Date(parseInt(params.cursor as string, 10)).toISOString()
-		builder = builder.where('posts.indexedAt', '<', timeStr)
+	let posts: any[] = []
+
+	for (const scoundrel of scoundrels) {
+		const post = await db 
+			.selectFrom('posts')
+			.selectAll()
+			.where('author', '=', scoundrel)
+			.orderBy('indexedAt', 'desc')
+			.limit(1)
+			.executeTakeFirst()
+
+		if (post !== undefined)
+			posts.push(post)	
 	}
 
-	return await builder.execute()
-}
+	console.log(posts.length)
 
+	return posts
+}
