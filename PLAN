@@ -51,6 +51,15 @@ TODO make topten feed calculation more accurate
 		maybe i can change from 'posts this week' to 'posts this day'
 
 TODO Write the fucking unit files!	
+TODO new feed - bangers from people you follow that you didn't like
+	bpyftydl - incredible name.
+	get some posts that were good and you didn't like
+	like a certain amount of likes
+	or calculate if the likes are more than what the author usually gets
+	TODO dependent on aforementioned preflight calculations
 
-
-a
+TODO FIX getting authors 
+	currently we get EVERYONE's authors. this Breaks when we have more than one user!
+	This should be okay, we already have the UsersFor category, and for certain posts that should be fine cause like if we got a new user some posts aren't gonna have their did but if the other dude is following the did is gonna be in the list on at least another post so we'll be fine
+	but i don't want to verify all of this right now cause it's 12:38am
+	we can just add .where usersFor.includes(did)	

@@ -1,6 +1,7 @@
 import { XRPC, CredentialManager } from '@atcute/client'
 import { initDb } from './db.ts'
 import type { PostTable } from './db.ts'
+import { insert, getFollows, getReducedFollows } from "./cron/utils.ts"
 import 'dotenv/config'
 
 const manager = new CredentialManager({ service: process.env.BSKY_SERVICE })
@@ -22,26 +23,18 @@ let newPosts: PostTable[] = []
 const uris: string[] = []
 const indices: number[] = []
 
-for ( const item of data.likes ) {
+for (const item of data.likes) {
 	console.log(`${item.actor.handle}: ${item.actor.did}`)
-	let follows: any[] = []
-	let cursor = null
-	while (cursor !== undefined) {
-		const { data: d } = await rpc.get("app.bsky.graph.getFollows", {
-			params: {
-				actor: item.actor.did,
-				//actor: "did:plc:mt74bxrck624eg4atq2cpgtg",
-				cursor: cursor ?? undefined
-			}
-		})
-		console.log(d.follows.length, d.cursor)
-		follows = follows.concat(d.follows)
-		cursor = d.cursor
-	}
+	//let follows = await getFollows(item.actor.did, rpc)
+	let follows = await getReducedFollows(item.actor.did, db)
 	console.log('done! len:', follows.length)
 
-	for (const follow of follows){
-		console.log(follow.did)
+	let count = 0
+	for (const follow of follows.slice(0, 10)){
+		//console.log(follow)
+		if (count % 20 == 0) console.log(`${Math.floor((count/follows.length)* 100)}%: ${follow.did}`)
+		count++
+		//console.log(follow.did)
 		const { data: authorFeed } = await rpc.get('app.bsky.feed.getAuthorFeed', {
 			params: {
 				actor: follow.did,
@@ -55,9 +48,9 @@ for ( const item of data.likes ) {
 			const a = post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost'
 			const b = pp.author.did !== follow.did 
 			if (post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost' || pp.author.did !== follow.did) {
-				if (!a && b) console.log('skipping reasonless did mismatch')
+				if (!a && b) console.log('skipping reasonless DID mismatch')
 				continue;
-			} else if (post.reason) console.log('post has reason, not repost:', post.post.reason);
+			} else if (post.reason) console.log('post has reason, but is not repost:', post.post.reason);
 
 			let media = pp.embed?.["$type"].includes("app.bsky.embed.video") || pp.embed?.["$type"].includes("app.bsky.embed.images")
 			if (uris.includes(pp.uri)) {
@@ -90,17 +83,10 @@ for (let i = 0; i < uris.length; i++) {
 	if (uri !== newPosts[i].uri) console.log('mismatch!', uri, "!=", newPosts[i].uri)
 }
 
-console.log('adding', newPosts.length, 'items')
+const inserted = await insert(db, newPosts)
+const a = newPosts.length
+const b = a - inserted
 
-while(newPosts.length) {
-	const result = await db
-		.insertInto('posts')
-		.values(newPosts.slice(0,999))
-		.onConflict(oc => oc.column('uri').doNothing())
-		.execute()
-	
-	newPosts = newPosts.slice(999)
-	console.log('result', result)
-}
+console.log(`inserted ${inserted} rows. waste: ${b}/${a}, ${Math.floor((b / a) * 100)}%`)
 
 console.log('done!')
