@@ -2,6 +2,7 @@ import { XRPC, CredentialManager } from '@atcute/client'
 import { initDb } from './db.ts'
 import type { PostTable } from './db.ts'
 import { insert, getFollows, getReducedFollows } from "./cron/utils.ts"
+import { time } from "./utils.ts"
 import 'dotenv/config'
 
 const manager = new CredentialManager({ service: process.env.BSKY_SERVICE })
@@ -25,12 +26,13 @@ const indices: number[] = []
 
 for (const item of data.likes) {
 	console.log(`${item.actor.handle}: ${item.actor.did}`)
-	//let follows = await getFollows(item.actor.did, rpc)
-	let follows = await getReducedFollows(item.actor.did, db)
+	let startHour = time()[1] === 0
+	console.log(startHour ? "Start of the hour, fetching all follows." : "Fetching follows who've posted today.")
+	let follows = startHour ? await getFollows(item.actor.did, rpc) : await getReducedFollows(item.actor.did, db)
 	console.log('done! len:', follows.length)
 
 	let count = 0
-	for (const follow of follows.slice(0, 10)){
+	for (const follow of follows){
 		//console.log(follow)
 		if (count % 20 == 0) console.log(`${Math.floor((count/follows.length)* 100)}%: ${follow.did}`)
 		count++
