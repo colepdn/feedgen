@@ -1,6 +1,6 @@
 import type { XRPC } from "@atcute/client"
 import { sql } from "kysely"
-import type { initDb } from "../db.ts"
+import type { initDb, PostTable} from "../db.ts"
 
 export async function insert(db, posts) {
 	let newPosts = posts.concat() //clone it just cause
@@ -63,4 +63,44 @@ export async function getReducedFollows(_did: string, db: Tdb) {
 	}))
 }
 
+export async function authorFeed(rpc, did: string, requesterDid: string, uris: string[], newPosts: PostTable[] ) {
 
+	const { data: authorFeed } = await rpc.get('app.bsky.feed.getAuthorFeed', {
+		params: {
+			actor: did,
+			filter: "posts_no_replies"
+		}
+	})
+	for (const post of authorFeed.feed) {
+		const pp = post.post
+		const a = post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost'
+		const b = pp.author.did !== did 
+		if (post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost' || pp.author.did !== did) {
+			if (!a && b) console.log('skipping reasonless DID mismatch')
+			continue;
+		} else if (post.reason) console.log('post has reason, but is not repost:', post.post.reason);
+
+		let media = pp.embed?.["$type"].includes("app.bsky.embed.video") || pp.embed?.["$type"].includes("app.bsky.embed.images")
+		if (uris.includes(pp.uri)) {
+			const index = uris.indexOf(pp.uri)
+			const newArr = JSON.parse(newPosts[index].usersFor) ?? []
+			console.log(newArr)
+			if (!newArr.includes(requesterDid)) {
+				newArr.push(requesterDid)
+				newPosts[index].usersFor = JSON.stringify(newArr)
+			}
+		} else {
+			const postnis = {
+				uri: pp.uri,
+				cid: pp.cid,
+				indexedAt: pp.indexedAt,
+				author: pp.author.did,
+				media: media ? 1 : 0,
+				usersFor: JSON.stringify([requesterDid])
+			}
+			newPosts.push(postnis)
+			uris.push(pp.uri)
+		}
+	}
+
+}

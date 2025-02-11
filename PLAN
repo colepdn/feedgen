@@ -63,3 +63,6 @@ TODO FIX getting authors
 	This should be okay, we already have the UsersFor category, and for certain posts that should be fine cause like if we got a new user some posts aren't gonna have their did but if the other dude is following the did is gonna be in the list on at least another post so we'll be fine
 	but i don't want to verify all of this right now cause it's 12:38am
 	we can just add .where usersFor.includes(did)	
+
+TODO Check if inserted posts are in db
+	get list of authors who have posted posts that we missed. maybe we can extrapolate a trend and minimize waste - get that 150 authors down to something lower
