@@ -4,6 +4,7 @@ import { jwt } from './utils.ts'
 import { initDb } from './db.ts'
 import algos from "./algos/index.ts" // we have barrel files... but we don't have any of the problems! awesome!
 import { authorFeed, getFollows, getReducedFollows, insert } from "./cron/utils.ts"
+import cache from "./cache.ts" 
 import "dotenv/config" 
 
 const app = express()
@@ -53,26 +54,32 @@ app.get('/xrpc/app.bsky.feed.getFeedSkeleton', async (req, res) => {
 		limit = isNaN(limit) ? 50 : limit
 		const auth = jwt(token)
 		console.log('decoded', auth)
-		
-		let follows = await getReducedFollows(auth[1].iss, db)
-		if (!follows.length) follows = await getFollows(auth[1].iss, rpc)
-		//let follows = await getFollows(auth[1].iss, rpc)
-	
+			
 		// this code is entirely copy-pasted. it can totally just be pulled out into another function lol
-		let promises: Promise<void>[] = []
-		let uris: any[] = []
-		let newPosts = []
-		for (const follow of follows) promises.push(authorFeed(rpc, follow.did, auth[1].iss, uris, newPosts))
-		const CONCURRENT_AMT = 20
-		while (promises.length) {
-			await Promise.all(promises.slice(0, CONCURRENT_AMT))
-			promises = promises.slice(CONCURRENT_AMT)
-		}
+		let updateDb = async () => {
+			let follows = await getReducedFollows(auth[1].iss, db)
+			if (!follows.length) follows = await getFollows(auth[1].iss, rpc)
+			//let follows = await getFollows(auth[1].iss, rpc)
 
-		await insert(db, newPosts)
+			let promises: Promise<void>[] = []
+			let uris: any[] = []
+			let newPosts = []
+			for (const follow of follows) promises.push(authorFeed(rpc, follow.did, auth[1].iss, uris, newPosts))
+			const CONCURRENT_AMT = 20
+			while (promises.length) {
+				await Promise.all(promises.slice(0, CONCURRENT_AMT))
+				promises = promises.slice(CONCURRENT_AMT)
+			}
+
+			await insert(db, newPosts)
+		}
+	
+		if (!params.cursor) {
+			await cache(`follows-${auth[1].iss}`, 15 * 60 * 1000, updateDb)
+		}
 		
-		const posts = await algos[feed](db, auth[1].iss, params, limit)
-		console.log(posts.slice(0, 10))
+		const posts = await algos[feed](db, auth[1].iss, params, limit, rpc)
+		//console.log(posts.slice(0, 10))
 
 		const resp = posts.map((row) => ({
 			post: row.uri

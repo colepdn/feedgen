@@ -62,7 +62,8 @@ export async function getReducedFollows(_did: string, db: Tdb) {
 			.distinct()
 			.where('posts.indexedAt', '>=', sql`datetime('now', '-1 day')`)
 			.execute()
-	console.log(res.slice(0,5), res.length)
+	//console.log(res.slice(0,5), res.length)
+	console.log(`retrieved ${res.length} follows`)
 	return res.map(e => ({
 		did: e.author,
 	}))

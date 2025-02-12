@@ -71,3 +71,5 @@ TODO FIX getting authors
 
 TODO Check if inserted posts are in db
 	get list of authors who have posted posts that we missed. maybe we can extrapolate a trend and minimize waste - get that 150 authors down to something lower
+
+TODO Remove posts from authors who no one is following.
