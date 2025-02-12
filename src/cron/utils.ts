@@ -64,7 +64,6 @@ export async function getReducedFollows(_did: string, db: Tdb) {
 }
 
 export async function authorFeed(rpc, did: string, requesterDid: string, uris: string[], newPosts: PostTable[] ) {
-
 	const { data: authorFeed } = await rpc.get('app.bsky.feed.getAuthorFeed', {
 		params: {
 			actor: did,

@@ -44,13 +44,13 @@ for (const item of data.likes) {
 		await authorFeed(rpc, follow.did, item.actor.did, uris, newPosts)
 	}
 	*/
+
 	let promises: Promise<any>[] = []
 	for (const follow of follows) {
-	
 		promises.push(authorFeed(rpc, follow.did, item.actor.did, uris, newPosts))
 	}
 
-	const CONCURRENT_AMT = 10
+	const CONCURRENT_AMT = 20 
 	while (promises.length) {
 		// this might not work the way we deal with uris[] and newPosts[]
 		await Promise.all(promises.slice(0, CONCURRENT_AMT))
