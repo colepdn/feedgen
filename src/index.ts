@@ -1,11 +1,20 @@
 import express from 'express'
+import { XRPC, CredentialManager } from "@atcute/client"
 import { jwt } from './utils.ts'
 import { initDb } from './db.ts'
 import algos from "./algos/index.ts" // we have barrel files... but we don't have any of the problems! awesome!
+import { authorFeed, getFollows, getReducedFollows, insert } from "./cron/utils.ts"
+import "dotenv/config" 
+
 const app = express()
 const port = 3080
 
 const db = await initDb()
+
+const manager = new CredentialManager({ service: process.env.BSKY_SERVICE })
+const rpc = new XRPC({ handler: manager })
+
+await manager.login({ identifier: process.env.BSKY_HANDLE, password: process.env.BSKY_PASSWORD })
 
 //https://feedgen.hotgoth.mom/xrpc/app.bsky.feed.getFeedSkeleton?feed=at://did:plc:wl4wyug27klcee5peb3xkeut/app.bsky.feed.generator/boner
 
@@ -34,12 +43,33 @@ app.get('/xrpc/app.bsky.feed.getFeedSkeleton', async (req, res) => {
 	// app.bsky.feed.getFeedSkeleton?feed=at://did:plc:wl4wyug27klcee5peb3xkeut/app.bsky.feed.generator/feed&limit=30&cursor=1738809921823
 
 	if (token && token.includes("Bearer")) {
-		const feed = decodeURIComponent(req.url.split('/').at(-1) ?? "").split('/').at(-1).split('&')[0]
+		const feed = decodeURIComponent(req.url.split('/').at(-1) ?? "").split('/').at(-1)?.split('&')[0]
+		if (feed === undefined) {
+			return void res.json({"error":"UnsupportedAlgorithm","message":"Unsupported algorithm"})
+		}
+
 		console.log('feed', feed)
 		let limit = parseInt((params.limit as string | undefined) ?? "50")
 		limit = isNaN(limit) ? 50 : limit
 		const auth = jwt(token)
 		console.log('decoded', auth)
+		
+		let follows = await getReducedFollows(auth[1].iss, db)
+		if (!follows.length) follows = await getFollows(auth[1].iss, rpc)
+		//let follows = await getFollows(auth[1].iss, rpc)
+	
+		// this code is entirely copy-pasted. it can totally just be pulled out into another function lol
+		let promises: Promise<void>[] = []
+		let uris: any[] = []
+		let newPosts = []
+		for (const follow of follows) promises.push(authorFeed(rpc, follow.did, auth[1].iss, uris, newPosts))
+		const CONCURRENT_AMT = 20
+		while (promises.length) {
+			await Promise.all(promises.slice(0, CONCURRENT_AMT))
+			promises = promises.slice(CONCURRENT_AMT)
+		}
+
+		await insert(db, newPosts)
 		
 		const posts = await algos[feed](db, auth[1].iss, params, limit)
 		console.log(posts.slice(0, 10))

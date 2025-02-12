@@ -63,10 +63,12 @@ for (let i = 0; i < uris.length; i++) {
 	if (uri !== newPosts[i].uri) console.log('mismatch!', uri, "!=", newPosts[i].uri)
 }
 
-const inserted = await insert(db, newPosts)
+await insert(db, newPosts)
+/* moved to cron/utils.ts @ function insert
 const a = newPosts.length
 const b = a - inserted
 
 console.log(`inserted ${inserted} rows. waste: ${b}/${a}, ${Math.floor((b / a) * 100)}%`)
+*/
 
 console.log('done!')

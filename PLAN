@@ -33,10 +33,13 @@ TODO cleanup posts
 				calc for all feeds and then delete oldest post out of EVERY feed. this requires feed files to be standardized. (duh)
 			TODO how do we deal with posts that have been collected for multiple users?
 
-TODO see if it's feasible to generate feeds on-demand.
+DONE see if it's feasible to generate feeds on-demand.
+	DONE simultaneous author feed fetching. change for loop from executing instantly to generating promises, and then await Promise.all()'ing them.
+	DONE fetch posts from users who've posted today. cron script when we constrain to only 10 users is almost instantaneous.
+		RESULTS this was bad. after implementing parallelization the need for this went out of the window.
 	TODO cache following? that's probably not fast enough
-	TODO fetch posts from users who've posted today. cron script when we constrain to only 10 users is almost instantaneous.
-	TODO simultaneous author feed fetching. change for loop from executing instantly to generating promises, and then await Promise.all()'ing them.
+		probably not worth
+	TODO cache results of feeds. current implementation essentially runs cron.ts every single request 😭 
 
 TODO make topten feed calculation more accurate
 	currently we have some real issues.
@@ -50,7 +53,9 @@ TODO make topten feed calculation more accurate
 		though if we do, our previous garbage-collection methodology goes out the window. we need a lot more posts to calculate this feed than the media feed.
 		maybe i can change from 'posts this week' to 'posts this day'
 
-TODO Write the fucking unit files!	
+	the plan for this is likely on startup to fetch A LOT of posts from our authors, go deep into those author feeds. like a week i think.
+
+DONE Write the fucking unit files!	
 TODO new feed - bangers from people you follow that you didn't like
 	bpyftydl - incredible name.
 	get some posts that were good and you didn't like

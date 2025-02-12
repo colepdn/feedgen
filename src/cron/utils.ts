@@ -19,6 +19,11 @@ export async function insert(db, posts) {
 		count += Number(result[0].numInsertedOrUpdatedRows)
 	}
 	
+	const a = newPosts.length
+	const b = a - count 
+
+	console.log(`inserted ${count} rows. waste: ${b}/${a}, ${Math.floor((b / a) * 100)}%`)
+
 	return count
 }
 
