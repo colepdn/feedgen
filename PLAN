@@ -13,6 +13,14 @@ DONE fix the bug where reposts from a user's feed will show up in the feed.
 	i just wasn't actually skipping it, i was executing the check
 DONE implement the cron script
 DONE implement multiple feeds handling. we return the same feed for every endpoint
+DONE Write the fucking unit files!	
+DONE see if it's feasible to generate feeds on-demand.
+	DONE simultaneous author feed fetching. change for loop from executing instantly to generating promises, and then await Promise.all()'ing them.
+	DONE fetch posts from users who've posted today. cron script when we constrain to only 10 users is almost instantaneous.
+		RESULTS this was bad. after implementing parallelization the need for this went out of the window.
+	DONE cache following? that's probably not fast enough
+		probably not worth
+	GOOD ENOUGH cache results of feeds. current implementation essentially runs cron.ts every single request 😭 
 
 TODO implement .well-known
 	it is currently hard-coded
@@ -33,14 +41,6 @@ TODO cleanup posts
 				calc for all feeds and then delete oldest post out of EVERY feed. this requires feed files to be standardized. (duh)
 			TODO how do we deal with posts that have been collected for multiple users?
 
-DONE see if it's feasible to generate feeds on-demand.
-	DONE simultaneous author feed fetching. change for loop from executing instantly to generating promises, and then await Promise.all()'ing them.
-	DONE fetch posts from users who've posted today. cron script when we constrain to only 10 users is almost instantaneous.
-		RESULTS this was bad. after implementing parallelization the need for this went out of the window.
-	TODO cache following? that's probably not fast enough
-		probably not worth
-	TODO cache results of feeds. current implementation essentially runs cron.ts every single request 😭 
-
 TODO make topten feed calculation more accurate
 	currently we have some real issues.
 	i refuse to believe Hideo Kojima is my #1 poaster.
@@ -55,7 +55,6 @@ TODO make topten feed calculation more accurate
 
 	the plan for this is likely on startup to fetch A LOT of posts from our authors, go deep into those author feeds. like a week i think.
 
-DONE Write the fucking unit files!	
 TODO new feed - bangers from people you follow that you didn't like
 	bpyftydl - incredible name.
 	get some posts that were good and you didn't like
@@ -63,13 +62,10 @@ TODO new feed - bangers from people you follow that you didn't like
 	or calculate if the likes are more than what the author usually gets
 	TODO dependent on aforementioned preflight calculations
 
-TODO FIX getting authors 
+TODO FIX getting authors for the -topten feed
 	currently we get EVERYONE's authors. this Breaks when we have more than one user!
 	This should be okay, we already have the UsersFor category, and for certain posts that should be fine cause like if we got a new user some posts aren't gonna have their did but if the other dude is following the did is gonna be in the list on at least another post so we'll be fine
 	but i don't want to verify all of this right now cause it's 12:38am
 	we can just add .where usersFor.includes(did)	
-
-TODO Check if inserted posts are in db
-	get list of authors who have posted posts that we missed. maybe we can extrapolate a trend and minimize waste - get that 150 authors down to something lower
 
 TODO Remove posts from authors who no one is following.
