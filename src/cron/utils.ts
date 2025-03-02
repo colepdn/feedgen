@@ -75,6 +75,9 @@ export async function authorFeed(rpc, did: string, requesterDid: string, uris: s
 			actor: did,
 			filter: "posts_no_replies"
 		}
+	}).catch((e) => {
+		console.log("getting author errored! returning empty. error:", e)
+		return []
 	})
 	for (const post of authorFeed.feed) {
 		const pp = post.post
