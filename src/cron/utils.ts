@@ -77,9 +77,9 @@ export async function authorFeed(rpc, did: string, requesterDid: string, uris: s
 		}
 	}).catch((e) => {
 		console.log("getting author errored! returning empty. error:", e)
-		return { feed: [] }
+		return {} 
 	})
-	for (const post of authorFeed.feed) {
+	for (const post of authorFeed.feed ?? []) {
 		const pp = post.post
 		const a = post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost'
 		const b = pp.author.did !== did 
