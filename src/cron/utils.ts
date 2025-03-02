@@ -77,7 +77,7 @@ export async function authorFeed(rpc, did: string, requesterDid: string, uris: s
 		}
 	}).catch((e) => {
 		console.log("getting author errored! returning empty. error:", e)
-		return []
+		return { feed: [] }
 	})
 	for (const post of authorFeed.feed) {
 		const pp = post.post
