@@ -10,6 +10,7 @@ export interface PostTable {
   indexedAt: string
   author: string
   media: 1 | 0
+  nudity: 1 | 0
   usersFor: string
 }
 
@@ -32,6 +33,7 @@ export async function initDb(location = 'posts.db'): Promise<Kysely<Database>> {
 	  .addColumn('indexedAt', 'varchar', (col) => col.notNull())
 	  .addColumn('author', 'varchar', (col) => col.notNull())
 	  .addColumn('media', 'integer', (col) => col.notNull())
+	  .addColumn('nudity', 'integer', (col) => col.notNull())
 	  .addColumn('usersFor', 'text', col => col.defaultTo('[]'))
 	  .execute()
 

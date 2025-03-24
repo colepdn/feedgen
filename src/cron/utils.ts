@@ -79,8 +79,18 @@ export async function authorFeed(rpc, did: string, requesterDid: string, uris: s
 		console.log("getting author errored! returning empty. error:", e)
 		return {} 
 	})
+
+
+	const nudityLabels = [ 'porn', 'sexual-figurative', 'sexual', 'nudity' ]
+
 	for (const post of authorFeed?.feed ?? []) {
+		let nudity = false
 		const pp = post.post
+
+		for (const label of pp.labels) {
+			if (nudityLabels.includes(label.val)) nudity = true
+		}
+
 		const a = post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost'
 		const b = pp.author.did !== did 
 		if (post.reason?.['$type'] === 'app.bsky.feed.defs#reasonRepost' || pp.author.did !== did) {
@@ -104,6 +114,7 @@ export async function authorFeed(rpc, did: string, requesterDid: string, uris: s
 				indexedAt: pp.indexedAt,
 				author: pp.author.did,
 				media: media ? 1 : 0,
+				nudity: nudity ? 1 : 0,
 				usersFor: JSON.stringify([requesterDid])
 			}
 			newPosts.push(postnis)
