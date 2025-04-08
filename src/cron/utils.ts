@@ -60,7 +60,7 @@ export async function getReducedFollows(_did: string, db: Tdb) {
 			.selectFrom('posts')
 			.select('author')
 			.distinct()
-			.where('posts.indexedAt', '>=', sql`datetime('now', '-1 day')`)
+			.where('posts.indexedAt', '>=', sql`datetime('now', '-7 days')`)
 			.execute()
 	//console.log(res.slice(0,5), res.length)
 	console.log(`retrieved ${res.length} follows`)
