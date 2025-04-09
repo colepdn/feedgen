@@ -57,9 +57,9 @@ app.get('/xrpc/app.bsky.feed.getFeedSkeleton', async (req, res) => {
 			
 		// this code is entirely copy-pasted. it can totally just be pulled out into another function lol
 		let updateDb = async () => {
-			//let follows = await getReducedFollows(auth[1].iss, db)
-			//if (!follows.length) follows = await getFollows(auth[1].iss, rpc)
-			let follows = await getFollows(auth[1].iss, rpc)
+			let follows = await getReducedFollows(auth[1].iss, db)
+			if (!follows.length) follows = await getFollows(auth[1].iss, rpc)
+			//let follows = await getFollows(auth[1].iss, rpc)
 
 			let promises: Promise<void>[] = []
 			let uris: any[] = []

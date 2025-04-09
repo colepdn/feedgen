@@ -1,8 +1,8 @@
 [Unit]
-Description=Run Feedgen Cron Every 30m
+Description=Run Feedgen Cron Every 2 hours
 
 [Timer]
-OnCalendar=*:0/30
+OnCalendar=00/2:30
 Unit=feedgen-cron.service
 Persistent=false
 
